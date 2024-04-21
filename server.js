@@ -2,17 +2,25 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const axios = require("axios");
+const mongoose = require("mongoose");
+const Establishment = require("./models/establishment");
 
 app.use(cors());
-
-// Middleware to parse incoming JSON requests
 app.use(express.json());
 
-// Route handler for POST request to "/vehicle-info"
+// connect to mongodb & listen for requests
+const dbURI =
+  "mongodb+srv://joshthomas:Slash2406@myautopal.w3obbyl.mongodb.net/my-auto-pal?retryWrites=true&w=majority&appName=myautopal";
+
+mongoose
+  .connect(dbURI)
+  .then((result) => app.listen(8000))
+  .catch((err) => console.log(err));
+
+// retrieve vehicle data from user reg input
 app.post("/vehicle-info", async (req, res) => {
   try {
-    const { registrationNumber } = req.body; // Extract registrationNumber from req.body
-
+    const { registrationNumber } = req.body;
     const config = {
       headers: {
         "x-api-key": "BRxejLyZYo4yi19lLmbVV3eZ9DkAh1pi9u9Dl0iq",
@@ -22,7 +30,7 @@ app.post("/vehicle-info", async (req, res) => {
 
     const response = await axios.post(
       "https://driver-vehicle-licensing.api.gov.uk/vehicle-enquiry/v1/vehicles",
-      { registrationNumber }, // Pass registrationNumber as an object
+      { registrationNumber },
       config
     );
 
@@ -34,6 +42,45 @@ app.post("/vehicle-info", async (req, res) => {
   }
 });
 
-app.listen(8000, () => {
-  console.log("Server started on port 8000");
+// add new establishment
+app.get("/add-establishment", (req, res) => {
+  const establishment = new Establishment({
+    establishmentName: "Bedwas Garage",
+    email: "bedwasgarage@email.com",
+    password: "bedwas123",
+    address: "44 Newport Road, Bedwas",
+    phoneNumber: "07902123123",
+  });
+
+  establishment
+    .save()
+    .then((result) => {
+      res.send(result);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send("Error adding establishment");
+    });
+});
+
+// fetch all establishments
+app.get("/all-establishments", (req, res) => {
+  Establishment.find()
+    .then((result) => {
+      res.send(result);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
+
+// fetch single establishment by id
+app.get("/single-establishment", (req, res) => {
+  Establishment.findById("6624539e7e152d0f7762e396")
+    .then((result) => {
+      res.send(result);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 });
