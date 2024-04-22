@@ -43,24 +43,24 @@ app.post("/vehicle-info", async (req, res) => {
 });
 
 // add new establishment
-app.get("/add-establishment", (req, res) => {
-  const establishment = new Establishment({
-    establishmentName: "Bedwas Garage",
-    email: "bedwasgarage@email.com",
-    password: "bedwas123",
-    address: "44 Newport Road, Bedwas",
-    phoneNumber: "07902123123",
-  });
+app.post("/add-establishment", (req, res) => {
+  try {
+    const establishmentData = req.body;
+    const establishment = new Establishment(establishmentData);
 
-  establishment
-    .save()
-    .then((result) => {
-      res.send(result);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).send("Error adding establishment");
-    });
+    establishment
+      .save()
+      .then((result) => {
+        res.send(result);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send("Error adding establishment");
+      });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send("Error adding establishment");
+  }
 });
 
 // fetch all establishments
